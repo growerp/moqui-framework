@@ -156,7 +156,7 @@ class UserFacadeImpl implements UserFacade {
                 logger.warn("For HTTP Basic Authorization got bad credentials string. Base64 encoded is [${basicAuthEncoded}] and after decoding is [${basicAuthAsString}].")
             }
         }
-        logger.info("===incoming api_key: ${request.getHeader("api_key")}")
+        logger.info("===incoming api_key: ${request.getHeader("api_key")}=")
         if (currentInfo.username == null && (request.getHeader("api_key") || request.getHeader("login_key"))) {
             String loginKey = request.getHeader("api_key") ?: request.getHeader("login_key")
             loginKey = loginKey.trim()
@@ -293,6 +293,7 @@ class UserFacadeImpl implements UserFacade {
                 logger.warn("For HTTP Basic Authorization got bad credentials string. Base64 encoded is [${basicAuthEncoded}] and after decoding is [${basicAuthAsString}].")
             }
         }
+        logger.info("===incoming header api_key: ${headers.api_key}")
         if (currentInfo.username == null && (headers.api_key || headers.login_key)) {
             String loginKey = headers.api_key ? headers.api_key.get(0) : (headers.login_key ? headers.login_key.get(0) : null)
             loginKey = loginKey.trim()
