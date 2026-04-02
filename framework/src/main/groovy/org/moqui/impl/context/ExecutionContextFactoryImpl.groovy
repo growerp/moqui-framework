@@ -1455,13 +1455,9 @@ class ExecutionContextFactoryImpl implements ExecutionContextFactory {
 
     void countArtifactHit(ArtifactType artifactTypeEnum, String artifactSubType, String artifactName,
               Map<String, Object> parameters, long startTime, double runningTimeMillis, Long outputSize) {
-        boolean isEntity = ArtifactExecutionInfo.AT_ENTITY.is(artifactTypeEnum) || (artifactSubType != null && artifactSubType.startsWith('entity'))
-        // don't count the ones this calls
-        if (isEntity && entitiesToSkipHitCount.contains(artifactName)) return
-        // for screen, transition, screen-content check skip stats expression
-        if (!isEntity && (ArtifactExecutionInfo.AT_XML_SCREEN.is(artifactTypeEnum) ||
-                ArtifactExecutionInfo.AT_XML_SCREEN_CONTENT.is(artifactTypeEnum) ||
-                ArtifactExecutionInfo.AT_XML_SCREEN_TRANS.is(artifactTypeEnum)) && eci.getSkipStats()) return
+        // only track external AT_SERVICE hits (REST calls with a web context)
+        if (!ArtifactExecutionInfo.AT_SERVICE.is(artifactTypeEnum) || getEci().getWebImpl() == null) return
+        boolean isEntity = false
 
         boolean isSlowHit = false
         if (Boolean.TRUE.is((Boolean) artifactPersistBinByTypeEnum.get(artifactTypeEnum))) {
