@@ -78,3 +78,6 @@ Desktop.ini
 
 # Linux auto files
 *~
+
+# Local debug/test output
+threads.txt
