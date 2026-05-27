@@ -1379,3 +1379,29 @@ task cleanPullLoad { dependsOn cleanAll, gitPullAll, load }
 task cleanPullTest { dependsOn cleanAll, gitPullAll, load, allTestTasks }
 task cleanPullCompTest { dependsOn cleanAll, gitPullAll, load, getComponentTestTasks() }
 task compTest { dependsOn getComponentTestTasks() }
+
+// ========== Flutter web app deploy (opt-in; NOT part of 'build') ==========
+// Build a Flutter web app and deploy it into PopRestStore so Moqui serves it at
+// /admin/ or /assessment/. Requires the Flutter SDK on PATH and a bootstrapped
+// flutter workspace (run 'melos bootstrap' in ../flutter once).
+// Intentionally standalone — not wired into 'build'/'addRunTime' — so backend-only
+// builds don't pull in the Flutter toolchain or the multi-minute web build.
+def flutterDeployScript = file('../flutter/packages/admin/deploy-web-to-moqui.sh')
+
+task deployAdmin(type: Exec) {
+    group 'flutter'
+    description 'Build the Flutter admin web app and deploy it into PopRestStore (/admin/).'
+    commandLine 'bash', flutterDeployScript.absolutePath, 'admin'
+}
+
+task deployAssessment(type: Exec) {
+    group 'flutter'
+    description 'Build the Flutter assessment web app and deploy it into PopRestStore (/assessment/).'
+    commandLine 'bash', flutterDeployScript.absolutePath, 'assessment'
+}
+
+task deployFlutterApps(type: Exec) {
+    group 'flutter'
+    description 'Build and deploy both the admin and assessment Flutter web apps into PopRestStore.'
+    commandLine 'bash', flutterDeployScript.absolutePath, 'both'
+}

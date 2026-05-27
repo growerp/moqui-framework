@@ -8,6 +8,9 @@ build
 /moqui*.war
 /Save*.zip
 
+# ADK class patches copied here by moqui-adk copyAdkPatches Gradle task
+/com/
+
 # runtime directory (separate repository so ignore directory entirely)
 /runtime
 /execwartmp
