@@ -766,7 +766,7 @@ class UserFacadeImpl implements UserFacade {
 
         // see if we found a record for the login key
         if (userLoginKey == null) {
-            eci.message.addError(eci.l10n.localize("Login key not valid"))
+            logger.warn("Login key not valid")
             return false
         }
 
