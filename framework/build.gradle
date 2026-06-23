@@ -164,7 +164,10 @@ dependencies {
     // api 'org.liquibase:liquibase-core:3.4.2' // Apache 2.0
 
     // Google ADK — required by moqui-adk component for LLM agent support
-    runtimeOnly 'com.google.adk:google-adk:1.3.0' // Apache 2.0
+    runtimeOnly('com.google.adk:google-adk:1.3.0') { // Apache 2.0
+        exclude group: 'javax.annotation', module: 'javax.annotation-api' // dup of jakarta.annotation-api:1.3.5
+        exclude group: 'org.slf4j', module: 'jcl-over-slf4j'              // dup of commons-logging:1.3.5 (line 78)
+    }
 
     // ========== test dependencies ==========
 
