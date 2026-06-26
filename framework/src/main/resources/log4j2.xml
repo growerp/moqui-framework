@@ -36,7 +36,7 @@ https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout
         </RollingFile>
         <MoquiLog4jAppender name="MoquiSubscribers"/>
         <Console name="STDOUT" target="SYSTEM_OUT">
-            <PatternLayout pattern="%highlight{%d{HH:mm:ss.SSS} %5p %12.12t %38.38c{1.9.1.}} %m%n"/>
+            <PatternLayout pattern="%highlight{%d{HH:mm:ss.SSS} %-5p %-15.15t %-40.40c{1.9.1.}} %m%n"/>
         </Console>
         <Async name="AsyncLog">
             <AppenderRef ref="STDOUT"/>
