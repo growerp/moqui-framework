@@ -15,6 +15,7 @@ package org.moqui.impl.context.renderer
 
 import com.vladsch.flexmark.ext.tables.TablesExtension
 import com.vladsch.flexmark.ext.toc.TocExtension
+import com.vladsch.flexmark.ext.yaml.front.matter.YamlFrontMatterExtension
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.ast.KeepType
@@ -48,7 +49,8 @@ class MarkdownTemplateRenderer implements TemplateRenderer {
             .set(TablesExtension.APPEND_MISSING_COLUMNS, true)
             .set(TablesExtension.DISCARD_EXTRA_COLUMNS, true)
             .set(TablesExtension.HEADER_SEPARATOR_COLUMN_MATCH, true)
-            .set(Parser.EXTENSIONS, (Iterable) Arrays.asList(TablesExtension.create(), TocExtension.create()))
+            .set(Parser.EXTENSIONS, (Iterable) Arrays.asList(TablesExtension.create(), TocExtension.create(),
+                    YamlFrontMatterExtension.create()))
     static final Parser PARSER = Parser.builder(OPTIONS).build()
     static final HtmlRenderer RENDERER = HtmlRenderer.builder(OPTIONS).build()
 
