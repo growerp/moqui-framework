@@ -16,3 +16,5 @@ rm $search_name/logs/*.log
 docker rm moqui-server
 docker rm moqui-database
 docker rm nginx-proxy
+
+docker system prune -a -f --volumes
