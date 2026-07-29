@@ -359,6 +359,13 @@ class DbResourceReference extends BaseResourceReference {
     }
     @Override InputStream openStream(String versionName) {
         if (versionName == null || versionName.isEmpty()) return openStream()
+        // the current version's authoritative content is DbResourceFile.fileData; its history row normally has no
+        // fileData (only back-filled by makeNextVersion), but may hold a stale blob after a direct entity data load
+        EntityValue dbrf = getDbResourceFile()
+        if (dbrf != null && versionName.equals(dbrf.versionName)) {
+            SerialBlob curFileData = dbrf.getSerialBlob("fileData")
+            if (curFileData != null) return curFileData.getBinaryStream()
+        }
         EntityValue dbrfHistory = getDbResourceFileHistory(versionName)
         if (dbrfHistory == null) return null
         if ("Y".equals(dbrfHistory.isDiff)) {
@@ -366,16 +373,8 @@ class DbResourceReference extends BaseResourceReference {
             return null
         } else {
             SerialBlob fileData = dbrfHistory.getSerialBlob("fileData")
-            if (fileData != null) {
-                return fileData.getBinaryStream()
-            } else {
-                // may be the current version with no fileData value in dbrfHistory
-                EntityValue dbrf = getDbResourceFile()
-                if (dbrf == null || !versionName.equals(dbrf.versionName)) return null
-                fileData = dbrf.getSerialBlob("fileData")
-                if (fileData == null) return null
-                return fileData.getBinaryStream()
-            }
+            if (fileData == null) return null
+            return fileData.getBinaryStream()
         }
     }
     @Override String getText(String versionName) { return ObjectUtilities.getStreamText(openStream(versionName)) }
