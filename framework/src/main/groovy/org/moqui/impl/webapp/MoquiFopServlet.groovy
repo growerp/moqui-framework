@@ -128,7 +128,7 @@ class MoquiFopServlet extends HttpServlet {
             // NOTE: there is no constant on HttpServletResponse for 429; see RFC 6585 for details
             response.sendError(429, e.message)
         } catch (ScreenResourceNotFoundException e) {
-            logger.warn((String) "Web Resource Not Found: " + e.message)
+            logger.info((String) "Web Resource Not Found: " + e.message)
             response.sendError(HttpServletResponse.SC_NOT_FOUND, e.message)
         } catch (Throwable t) {
             logger.error("Error transforming XSL-FO content:\n${xslFoText}", t)

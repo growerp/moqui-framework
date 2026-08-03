@@ -125,7 +125,7 @@ class MoquiServlet extends HttpServlet {
             logger.warn("Web Access Forbidden (no authz): " + e.message)
             sendErrorResponse(request, response, HttpServletResponse.SC_FORBIDDEN, "forbidden", null, e, ecfi, webappName, sri)
         } catch (ScreenResourceNotFoundException e) {
-            logger.warn("Web Resource Not Found: " + e.message)
+            logger.info("Web Resource Not Found: " + e.message)
             sendErrorResponse(request, response, HttpServletResponse.SC_NOT_FOUND, "not-found", null, e, ecfi, webappName, sri)
         } catch (ArtifactTarpitException e) {
             logger.warn("Web Too Many Requests (tarpit): " + e.message)
