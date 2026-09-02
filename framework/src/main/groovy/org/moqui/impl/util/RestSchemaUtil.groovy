@@ -567,16 +567,35 @@ class RestSchemaUtil {
     // ========== Web Request Schema Methods ==========
     // ================================================
 
-    static void handleEntityRestSchema(ExecutionContextImpl eci, List<String> extraPathNameList, String schemaUri, String linkPrefix,
-                                       String schemaLinkPrefix, boolean getMaster) {
-        // make sure a user is logged in, screen/etc that calls will generally be configured to not require auth
+    /** A schema document describes the whole data model or endpoint set of an API, so it is not public: the screen
+     * hosting these transitions is configured to not require auth, which means the check has to happen here.
+     * The caller must be logged in, and a document for an API not named in the rest_schema_open_apis System property
+     * (comma separated root resource names, empty by default) is limited to the ADMIN group. Pass a null apiName for
+     * the entity and entity master schemas, which are never open.
+     * Returns true if access was denied and the error response was already sent. */
+    private static boolean schemaAccessDenied(ExecutionContextImpl eci, String apiName) {
         if (!eci.getUser().getUsername()) {
             // if there was a login error there will be a MessageFacade error message
             String errorMessage = eci.message.errorsString
-            if (!errorMessage) errorMessage = "Authentication required for entity REST schema"
+            if (!errorMessage) errorMessage = "Authentication required for REST schema"
             eci.webImpl.sendJsonError(HttpServletResponse.SC_UNAUTHORIZED, errorMessage, null)
-            return
+            return true
         }
+
+        if (apiName) {
+            String openApis = System.getProperty("rest_schema_open_apis")
+            if (openApis) for (String openApi in openApis.split(",")) if (openApi.trim() == apiName) return false
+        }
+        if (eci.getUser().isInGroup("ADMIN")) return false
+
+        eci.webImpl.sendJsonError(HttpServletResponse.SC_FORBIDDEN,
+                "Not authorized for REST schema" + (apiName ? " of API ${apiName}" : ""), null)
+        return true
+    }
+
+    static void handleEntityRestSchema(ExecutionContextImpl eci, List<String> extraPathNameList, String schemaUri, String linkPrefix,
+                                       String schemaLinkPrefix, boolean getMaster) {
+        if (schemaAccessDenied(eci, null)) return
 
         EntityFacadeImpl efi = eci.entityFacade
 
@@ -656,14 +675,7 @@ class RestSchemaUtil {
     }
 
     static void handleEntityRestRaml(ExecutionContextImpl eci, List<String> extraPathNameList, String linkPrefix, String schemaLinkPrefix, boolean getMaster) {
-        // make sure a user is logged in, screen/etc that calls will generally be configured to not require auth
-        if (!eci.getUser().getUsername()) {
-            // if there was a login error there will be a MessageFacade error message
-            String errorMessage = eci.message.errorsString
-            if (!errorMessage) errorMessage = "Authentication required for entity REST schema"
-            eci.webImpl.sendJsonError(HttpServletResponse.SC_UNAUTHORIZED, errorMessage, null)
-            return
-        }
+        if (schemaAccessDenied(eci, null)) return
 
         EntityFacadeImpl efi = eci.entityFacade
 
@@ -731,6 +743,8 @@ class RestSchemaUtil {
     }
 
     static void handleEntityRestSwagger(ExecutionContextImpl eci, List<String> extraPathNameList, String basePath, boolean getMaster) {
+        if (schemaAccessDenied(eci, null)) return
+
         if (extraPathNameList.size() == 0) {
             eci.webImpl.sendJsonError(HttpServletResponse.SC_BAD_REQUEST, "No entity name specified in path (for all entities use 'all')", null)
             return
@@ -836,6 +850,9 @@ class RestSchemaUtil {
             filenameBase.append(pathName).append('.')
         }
 
+        // the first path name is the root resource, ie the name of the API this document describes
+        if (schemaAccessDenied(eci, rootPathList.get(0))) return
+
         eci.webImpl.response.setHeader("Access-Control-Allow-Origin", "*")
         eci.webImpl.response.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH, OPTIONS")
         eci.webImpl.response.setHeader("Access-Control-Allow-Headers", "Content-Type, api_key, Authorization")
@@ -870,6 +887,8 @@ class RestSchemaUtil {
         }
         String rootResourceName = extraPathNameList.get(0)
         if (rootResourceName.endsWith(".raml")) rootResourceName = rootResourceName.substring(0, rootResourceName.length() - 5)
+
+        if (schemaAccessDenied(eci, rootResourceName)) return
 
         Map swaggerMap = eci.serviceFacade.restApi.getRamlMap(rootResourceName, linkPrefix)
         DumperOptions options = new DumperOptions()
