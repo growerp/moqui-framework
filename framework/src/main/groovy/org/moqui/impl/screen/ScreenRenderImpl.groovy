@@ -630,6 +630,10 @@ class ScreenRenderImpl implements ScreenRender {
             if (isBinary) {
                 if (response != null) {
                     this.outputContentType = fileContentType
+                    // the character encoding was set before the sub-content type was known, and gets appended to
+                    // the Content-Type as a charset parameter; binary content has no charset, and the parameter
+                    // breaks strict client checks (WebAssembly requires exactly 'application/wasm')
+                    try { response.setCharacterEncoding((String) null) } catch (Throwable t) { logger.warn("Could not clear character encoding for binary content ${fileResourceRef.location}: ${t.toString()}") }
                     response.setContentType(this.outputContentType)
                     // static binary, tell the browser to cache it
                     if (webappInfo != null) {

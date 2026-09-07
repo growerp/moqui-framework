@@ -32,6 +32,12 @@ import java.util.*;
 public abstract class ResourceReference implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(ResourceReference.class);
     private static final MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
+    static {
+        // types not in the default map, needed for WebAssembly builds (eg Flutter web --wasm) where
+        // browsers enforce strict MIME checking on module scripts and streaming wasm compilation
+        mimetypesFileTypeMap.addMimeTypes("application/wasm wasm");
+        mimetypesFileTypeMap.addMimeTypes("application/javascript mjs");
+    }
 
     protected ResourceReference childOfResource = null;
     private Map<String, ResourceReference> subContentRefByPath = null;
