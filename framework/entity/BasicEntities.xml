@@ -554,6 +554,11 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="toUserId" type="id"/>
         <field name="emailTemplateId" type="id"><description>For outgoing messages that came from an EmailTemplate.</description></field>
         <field name="emailServerId" type="id"/>
+        <field name="attachmentFileName" type="text-medium"/>
+        <field name="attachmentContentType" type="text-medium"/>
+        <field name="attachmentContent" type="binary-very-long"><description>Single-attachment
+            support: raw bytes attached to the outgoing message, when attachmentFileName is
+            set.</description></field>
 
         <relationship type="one" title="EmailMessage" related="moqui.basic.StatusItem" short-alias="status"/>
         <relationship type="one" title="EmailType" related="moqui.basic.Enumeration" short-alias="type">

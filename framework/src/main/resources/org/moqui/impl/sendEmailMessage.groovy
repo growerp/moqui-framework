@@ -19,6 +19,7 @@
 
 import org.apache.commons.mail2.jakarta.DefaultAuthenticator
 import org.apache.commons.mail2.jakarta.HtmlEmail
+import jakarta.mail.util.ByteArrayDataSource
 import org.moqui.entity.EntityValue
 import org.moqui.impl.context.ExecutionContextImpl
 
@@ -133,6 +134,14 @@ try {
     if (bodyHtml) email.setHtmlMsg(bodyHtml)
     // set the alternative plain text message
     if (bodyText) email.setTextMsg(bodyText)
+
+    // single attachment, if the message carries one
+    byte[] attachmentContent = emailMessage.attachmentContent as byte[]
+    String attachmentFileName = emailMessage.attachmentFileName
+    if (attachmentContent && attachmentFileName) {
+        String attachmentContentType = (emailMessage.attachmentContentType as String) ?: 'application/octet-stream'
+        email.attach(new ByteArrayDataSource(attachmentContent, attachmentContentType), attachmentFileName, attachmentFileName)
+    }
 
     if (logger.infoEnabled) logger.info("Sending email [${email.getSubject()}] from ${email.getFromAddress()} to ${email.getToAddresses()} cc ${email.getCcAddresses()} bcc ${email.getBccAddresses()} via ${emailServer.mailUsername}@${email.getHostName()}:${email.getSmtpPort()} SSL? ${email.isSSLOnConnect()}:${email.isSSLCheckServerIdentity()} StartTLS? ${email.isStartTLSEnabled()}:${email.isStartTLSRequired()}")
     if (logger.traceEnabled) logger.trace("Sending email [${email.getSubject()}] to ${email.getToAddresses()} with bodyHtml:\n${bodyHtml}\nbodyText:\n${bodyText}")
