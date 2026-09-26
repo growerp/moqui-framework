@@ -6,6 +6,9 @@ MAINTAINER Moqui Framework <moqui@googlegroups.com>
 
 WORKDIR /opt/moqui
 
+# GrowERP: ffmpeg + fonts for the narrated course videos
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg fontconfig fonts-dejavu-core && rm -rf /var/lib/apt/lists/*
+
 # for running from the war directly, preffered approach unzips war in advance (see docker-build.sh that does this)
 #COPY moqui.war .
 # copy files from unzipped moqui.war file
