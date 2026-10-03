@@ -25,6 +25,9 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="createEmailMessage" type="Boolean" default="true"/>
             <parameter name="emailTypeEnumId"/>
             <parameter name="fromUserId"/><parameter name="toUserId"/>
+            <parameter name="emailServerId"><description>Overrides the template's EmailServer</description></parameter>
+            <parameter name="fromAddress"><description>Overrides the template's fromAddress</description></parameter>
+            <parameter name="fromName"><description>Overrides the template's fromName</description></parameter>
             <parameter name="attachments" type="List"><parameter name="attachment" type="Map">
                 <parameter name="fileName"/>
                 <!-- specify mime type with contentType or for screen renders determine from render mode, for others from fileName extension -->

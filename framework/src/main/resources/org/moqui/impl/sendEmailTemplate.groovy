@@ -55,8 +55,10 @@ try {
     } else { bccAddresses = emailTemplate.bccAddresses }
 
     // prepare the fromAddress, fromName, subject, etc; no type or def so that they go into the context for templates
-    fromAddress = ec.resource.expand((String) emailTemplate.fromAddress, "")
-    fromName = ec.resource.expand((String) emailTemplate.fromName, "")
+    // fromAddress/fromName/emailServerId parameters override the template, eg to send with a tenant's own server
+    fromAddress = context.fromAddress ?: ec.resource.expand((String) emailTemplate.fromAddress, "")
+    fromName = context.fromName ?: ec.resource.expand((String) emailTemplate.fromName, "")
+    emailServerId = context.emailServerId ?: emailTemplate.emailServerId
     subject = ec.resource.expand((String) emailTemplate.subject, "")
     webappName = (String) emailTemplate.webappName ?: "webroot"
     webHostName = (String) emailTemplate.webHostName
@@ -67,7 +69,7 @@ try {
         Map cemParms = [statusId:"ES_DRAFT", subject:subject,
                         fromAddress:fromAddress, fromName:fromName, toAddresses:toAddresses, ccAddresses:ccAddresses, bccAddresses:bccAddresses,
                         contentType:"text/html", emailTypeEnumId:emailTypeEnumId,
-                        emailTemplateId:emailTemplateId, emailServerId:emailTemplate.emailServerId,
+                        emailTemplateId:emailTemplateId, emailServerId:emailServerId,
                         fromUserId:(fromUserId ?: ec.user?.userId), toUserId:toUserId]
         Map cemResults = ec.service.sync().name("create", "moqui.basic.email.EmailMessage").requireNewTransaction(true)
                 .parameters(cemParms).disableAuthz().call()
@@ -92,10 +94,11 @@ try {
     }
 
     EntityList emailTemplateAttachmentList = (EntityList) emailTemplate.attachments
-    emailServer = (EntityValue) emailTemplate.server
+    emailServer = emailServerId == emailTemplate.emailServerId ? (EntityValue) emailTemplate.server :
+            ec.entity.find("moqui.basic.email.EmailServer").condition("emailServerId", emailServerId).disableAuthz().one()
 
     // check a couple of required fields
-    if (emailServer == null) ec.message.addError(ec.resource.expand('No EmailServer record found for EmailTemplate ${emailTemplateId}',''))
+    if (emailServer == null) ec.message.addError(ec.resource.expand('No EmailServer record found for EmailTemplate ${emailTemplateId} server ${emailServerId}',''))
     if (!fromAddress) ec.message.addError(ec.resource.expand('From address is empty for EmailTemplate ${emailTemplateId}',''))
     if (ec.message.hasError()) {
         logger.info("Error sending email: ${ec.message.getErrorsString()}\nsubject: ${subject}\nbodyHtml:\n${bodyHtml}\nbodyText:\n${bodyText}")
