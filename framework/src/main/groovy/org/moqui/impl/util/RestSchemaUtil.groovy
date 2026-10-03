@@ -570,7 +570,7 @@ class RestSchemaUtil {
     /** A schema document describes the whole data model or endpoint set of an API, so it is not public: the screen
      * hosting these transitions is configured to not require auth, which means the check has to happen here.
      * The caller must be logged in, and a document for an API not named in the rest_schema_open_apis System property
-     * (comma separated root resource names, empty by default) is limited to the ADMIN group. Pass a null apiName for
+     * (comma separated root resource names, empty by default) needs the REST_SCHEMA permission (ADMIN group in seed data). Pass a null apiName for
      * the entity and entity master schemas, which are never open.
      * Returns true if access was denied and the error response was already sent. */
     private static boolean schemaAccessDenied(ExecutionContextImpl eci, String apiName) {
@@ -586,7 +586,7 @@ class RestSchemaUtil {
             String openApis = System.getProperty("rest_schema_open_apis")
             if (openApis) for (String openApi in openApis.split(",")) if (openApi.trim() == apiName) return false
         }
-        if (eci.getUser().isInGroup("ADMIN")) return false
+        if (eci.userFacade.hasPermission("REST_SCHEMA")) return false
 
         eci.webImpl.sendJsonError(HttpServletResponse.SC_FORBIDDEN,
                 "Not authorized for REST schema" + (apiName ? " of API ${apiName}" : ""), null)
@@ -769,7 +769,6 @@ class RestSchemaUtil {
         String filename = entityName ?: "Entities"
         if (masterName) filename = filename + "." + masterName
 
-        eci.webImpl.response.setHeader("Access-Control-Allow-Origin", "*")
         eci.webImpl.response.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH, OPTIONS")
         eci.webImpl.response.setHeader("Access-Control-Allow-Headers", "Content-Type, api_key, Authorization")
 
@@ -853,7 +852,6 @@ class RestSchemaUtil {
         // the first path name is the root resource, ie the name of the API this document describes
         if (schemaAccessDenied(eci, rootPathList.get(0))) return
 
-        eci.webImpl.response.setHeader("Access-Control-Allow-Origin", "*")
         eci.webImpl.response.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH, OPTIONS")
         eci.webImpl.response.setHeader("Access-Control-Allow-Headers", "Content-Type, api_key, Authorization")
 
