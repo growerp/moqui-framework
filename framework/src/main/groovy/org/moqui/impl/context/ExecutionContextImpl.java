@@ -234,13 +234,20 @@ public class ExecutionContextImpl implements ExecutionContext {
         ecfi.resourceFacade.destroyAllInThread();
         // Drop user state on this object so a leaked ECI cannot carry a login. Do not Shiro-logout
         // (that would invalidate a still-valid HTTP session).
-        userFacade.resetToAnonymous();
-        // clear out the ECFI's reference to this as well
-        ecfi.activeContext.remove();
-        ecfi.activeContextMap.remove(Thread.currentThread().threadId());
+        try {
+            userFacade.resetToAnonymous();
+        } catch (Throwable t) {
+            // e.g. a recycled Jetty request after an async/SSE response; the cleanup below must
+            // still run or this ECI, with its user, stays on the pooled thread for the next request
+            loggerDirect.warn("Error resetting user to anonymous in ExecutionContext destroy", t);
+        } finally {
+            // clear out the ECFI's reference to this as well
+            ecfi.activeContext.remove();
+            ecfi.activeContextMap.remove(Thread.currentThread().threadId());
 
-        MDC.remove("moqui_userId");
-        MDC.remove("moqui_visitorId");
+            MDC.remove("moqui_userId");
+            MDC.remove("moqui_visitorId");
+        }
 
         if (loggerDirect.isTraceEnabled()) loggerDirect.trace("ExecutionContextImpl destroyed");
     }

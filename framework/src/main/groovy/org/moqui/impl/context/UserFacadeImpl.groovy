@@ -1084,7 +1084,9 @@ class UserFacadeImpl implements UserFacade {
                 currencyUomId = userAccount.currencyUomId
             } else {
                 // set defaults if no user
-                localeCache = ufi.request != null ? ufi.request.getLocale() : Locale.getDefault()
+                // a recycled Jetty request (after an async/SSE response) throws on getLocale()
+                try { localeCache = ufi.request != null ? ufi.request.getLocale() : Locale.getDefault() }
+                catch (Exception e) { localeCache = Locale.getDefault() }
                 tzCache = TimeZone.getDefault()
             }
 
