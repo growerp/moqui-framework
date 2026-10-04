@@ -315,8 +315,15 @@ class UserFacadeImpl implements UserFacade {
             if (loginKey != null && !loginKey.isEmpty() && !"null".equals(loginKey) && !"undefined".equals(loginKey))
                 this.loginUserKey(loginKey)
         }
-        // Do not read api_key / login_key / authUsername from the upgrade query string (same as HTTP body-only).
-        // Callers should send those as headers or rely on the existing HTTP session cookie.
+        // GrowERP: still accept api_key / login_key from the upgrade query string. Browsers cannot set headers on
+        // a WebSocket, so the Flutter web client can only send its key in the URL. authUsername stays unsupported.
+        Map<String, List<String>> parameters = request.getParameterMap()
+        if (currentInfo.username == null && (parameters.api_key || parameters.login_key)) {
+            String loginKey = parameters.api_key ? parameters.api_key.get(0) : (parameters.login_key ? parameters.login_key.get(0) : null)
+            loginKey = loginKey?.trim()
+            if (loginKey != null && !loginKey.isEmpty() && !"null".equals(loginKey) && !"undefined".equals(loginKey))
+                this.loginUserKey(loginKey)
+        }
     }
     void initFromHttpSession(HttpSession session) {
         resetToAnonymous()
