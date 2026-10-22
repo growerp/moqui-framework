@@ -39,10 +39,13 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.sql.Timestamp
+import java.util.concurrent.ConcurrentHashMap
 
 @CompileStatic
 class MoquiShiroRealm implements Realm, Authorizer {
     protected final static Logger logger = LoggerFactory.getLogger(MoquiShiroRealm.class)
+    // last UserLoginHistory write time per userId; claimed atomically so concurrent logins don't race on the PK
+    protected final static ConcurrentHashMap<String, Long> lastLoginHistoryByUser = new ConcurrentHashMap<>()
 
     protected ExecutionContextFactoryImpl ecfi
     protected String realmName = "moquiRealm"
@@ -231,6 +234,9 @@ class MoquiShiroRealm implements Realm, Authorizer {
                 Timestamp fromDate = eci.getUser().getNowTimestamp()
                 // look for login history in the last minute, if any found don't create UserLoginHistory
                 Timestamp recentDate = new Timestamp(fromDate.getTime() - 60000)
+                long now = fromDate.getTime()
+                Long last = lastLoginHistoryByUser.putIfAbsent(userId, now)
+                if (last != null && (now - last.longValue() < 60000L || !lastLoginHistoryByUser.replace(userId, last, now))) return
 
                 Map<String, Object> ulhContext = [userId:userId, fromDate:fromDate,
                         visitId:eci.user.visitId, successfulLogin:(successful?"Y":"N")] as Map<String, Object>
