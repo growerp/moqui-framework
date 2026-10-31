@@ -96,8 +96,10 @@ class DbResourceReference extends BaseResourceReference {
         if (getPath() && dbr == null) return dirEntries
 
         // allow parentResourceId to be null for the root
+        // no cache: a reader in another transaction can cache this list after a file create cleared it but before
+        //     the create commits, then the new file stays invisible to findChildFile until the next write here
         EntityList childList = ecf.entity.find("moqui.resource.DbResource").condition([parentResourceId:dbr?.resourceId])
-                .orderBy("filename").useCache(true).disableAuthz().list()
+                .orderBy("filename").useCache(false).disableAuthz().list()
         for (EntityValue child in childList) {
             String childLoc = getPath() ? "${location}/${child.filename}" : "${location}${child.filename}"
             dirEntries.add(new DbResourceReference().init(childLoc, child, ecf))
